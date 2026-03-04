@@ -126,23 +126,11 @@
 
         // Data Dummy Awal
         const initialProducts = [
-          { id: 1, name: 'Buku Tulis 38 Lembar', modal: 2500, price: 3500, stock: 50, unit: 'Pcs', category: 'Alat Tulis', iconName: 'BookOpen' },
-          { id: 2, name: 'Buku Tulis 58 Lembar', modal: 3500, price: 4500, stock: 40, unit: 'Pcs', category: 'Alat Tulis', iconName: 'BookOpen' },
-          { id: 3, name: 'Pulpen Standard Hitam', modal: 1500, price: 2000, stock: 100, unit: 'Pcs', category: 'Alat Tulis', iconName: 'BookOpen' },
-          { id: 4, name: 'Pensil 2B', modal: 1000, price: 1500, stock: 100, unit: 'Pcs', category: 'Alat Tulis', iconName: 'BookOpen' },
-          { id: 5, name: 'Penggaris Besi 30cm', modal: 3500, price: 5000, stock: 30, unit: 'Pcs', category: 'Alat Tulis', iconName: 'BookOpen' },
-          { id: 6, name: 'Es Teh Manis', modal: 1500, price: 3000, stock: 50, unit: 'Porsi', category: 'Minuman', iconName: 'Coffee' },
-          { id: 7, name: 'Air Mineral Botol', modal: 2000, price: 3000, stock: 48, unit: 'Botol', category: 'Minuman', iconName: 'Coffee' },
-          { id: 8, name: 'Kopi Susu Dingin', modal: 3000, price: 5000, stock: 30, unit: 'Porsi', category: 'Minuman', iconName: 'Coffee' },
-          { id: 9, name: 'Roti Bakar Coklat', modal: 5000, price: 8000, stock: 20, unit: 'Porsi', category: 'Makanan', iconName: 'Store' },
-          { id: 10, name: 'Nasi Kuning Telur', modal: 7000, price: 10000, stock: 25, unit: 'Porsi', category: 'Makanan', iconName: 'Store' },
-          { id: 11, name: 'Snack Keripik Singkong', modal: 1200, price: 2000, stock: 60, unit: 'Bks', category: 'Makanan', iconName: 'Store' },
-          { id: 12, name: 'Dasi SMK', modal: 10000, price: 15000, stock: 15, unit: 'Pcs', category: 'Atribut', iconName: 'Tag' },
-          { id: 13, name: 'Topi Sekolah', modal: 10000, price: 15000, stock: 20, unit: 'Pcs', category: 'Atribut', iconName: 'Tag' },
-          { id: 14, name: 'Badge OSIS', modal: 3000, price: 5000, stock: 50, unit: 'Pcs', category: 'Atribut', iconName: 'Tag' },
+          { id: 1, name: 'OLI TMO 4L', modal: 295000, price: 325000, stock: 4, unit: 'Pcs', category: 'Oli', iconName: 'BookOpen' },
+          { id: 2, name: 'OLI TMO 1L', modal: 95000, price: 100000, stock: 4, unit: 'Pcs', category: 'Oli', iconName: 'BookOpen' },
         ];
 
-        const categories = ['Semua', 'Alat Tulis', 'Makanan', 'Minuman', 'Atribut'];
+        const categories = ['Semua', 'Oli', 'SparePart Mobil', 'SparePart Motor', 'Electrical'];
 
         const IconComponent = ({ name, className }) => {
           return <SvgIcon name={name || 'Package'} className={className} />;
@@ -402,7 +390,7 @@
 
           // --- INVENTORY CRUD ---
           const [formData, setFormData] = useState({
-            code: '', name: '', stock: '', unit: 'Pcs', modal: '', price: '', category: 'Alat Tulis'
+            code: '', name: '', stock: '', unit: 'Pcs', modal: '', price: '', category: 'Oli'
           });
 
           // Create & Update Data Barang
@@ -444,7 +432,7 @@
             }
             
             // Reset form
-            setFormData({ code: '', name: '', stock: '', unit: 'Pcs', modal: '', price: '', category: 'Alat Tulis' });
+            setFormData({ code: '', name: '', stock: '', unit: 'Pcs', modal: '', price: '', category: 'Oli' });
           };
 
           // Start Edit
@@ -456,7 +444,7 @@
               unit: product.unit || 'Pcs',
               modal: product.modal || 0,
               price: product.price || 0,
-              category: product.category || 'Alat Tulis'
+              category: product.category || 'Oli'
             });
             setEditingProductId(product.id);
           };
@@ -464,7 +452,7 @@
           // Cancel Edit
           const handleCancelEditProduct = () => {
             setEditingProductId(null);
-            setFormData({ code: '', name: '', stock: '', unit: 'Pcs', modal: '', price: '', category: 'Alat Tulis' });
+            setFormData({ code: '', name: '', stock: '', unit: 'Pcs', modal: '', price: '', category: 'Oli' });
           };
 
           // Delete Data Barang
@@ -1139,7 +1127,7 @@
                           <div>
                             <label className="text-xs font-semibold text-gray-600 mb-1 block">Satuan</label>
                             <select value={formData.unit} onChange={e => setFormData({...formData, unit: e.target.value})} className="w-full p-2.5 text-sm border rounded-xl bg-gray-50 focus:bg-white outline-none">
-                              <option>Pcs</option><option>Botol</option><option>Jerigen</option><option>Lusin</option><option>Kg</option><option>bh</option>
+                              <option>Jerigen</option><option>Pcs</option><option>Liter</option><option>Lusin</option><option>Kg</option><option>bh</option>
                             </select>
                           </div>
                         </div>
@@ -1338,3 +1326,4 @@
     </script>
 </body>
 </html>
+
