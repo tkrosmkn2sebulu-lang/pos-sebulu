@@ -2,8 +2,15 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>POS UP SMKN 2 Sebulu</title>
+    
+    <!-- Meta tag PWA -->
+    <meta name="theme-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="POS Sebulu">
+    <link rel="manifest" href="manifest.json">
     
     <!-- Pustaka Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -68,7 +75,8 @@
           Upload: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line>',
           Wrench: '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>',
           Briefcase: '<rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>',
-          Calendar: '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>'
+          Calendar: '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>',
+          Smartphone: '<rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line>'
         };
 
         const SvgIcon = ({ name, className }) => (
@@ -114,6 +122,7 @@
         const Wrench = (p) => <SvgIcon name="Wrench" {...p} />;
         const Briefcase = (p) => <SvgIcon name="Briefcase" {...p} />;
         const Calendar = (p) => <SvgIcon name="Calendar" {...p} />;
+        const Smartphone = (p) => <SvgIcon name="Smartphone" {...p} />;
 
         // Data Dummy Awal
         const initialProducts = [
@@ -164,6 +173,10 @@
           const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
           const [serviceInput, setServiceInput] = useState({ name: 'Jasa Service', price: '' });
 
+          // State PWA Install
+          const [deferredPrompt, setDeferredPrompt] = useState(null);
+          const [isInstallable, setIsInstallable] = useState(false);
+
           // State untuk filter tanggal laporan
           const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
           const [reportStartDate, setReportStartDate] = useState('');
@@ -175,13 +188,25 @@
 
           const fileInputRef = useRef(null);
 
-          // --- EFEK LOCAL STORAGE (Penyimpanan Sementara) ---
+          // --- EFEK LOCAL STORAGE & PWA ---
           useEffect(() => {
             const savedProducts = localStorage.getItem('up_sebulu_products_v2');
             const savedHistory = localStorage.getItem('up_sebulu_history_v2');
             
             if (savedProducts) setProducts(JSON.parse(savedProducts));
             if (savedHistory) setHistory(JSON.parse(savedHistory));
+
+            // Menangkap event instalasi PWA dari browser
+            const handleBeforeInstallPrompt = (e) => {
+              e.preventDefault(); // Mencegah banner default muncul otomatis
+              setDeferredPrompt(e); // Simpan event untuk dipanggil nanti
+              setIsInstallable(true); // Munculkan tombol install buatan sendiri
+            };
+            window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+            
+            return () => {
+              window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+            };
           }, []);
 
           useEffect(() => {
@@ -193,6 +218,19 @@
           }, [history]);
 
           // --- HANDLERS ---
+          const handleInstallApp = async () => {
+            if (!deferredPrompt) return;
+            // Tampilkan prompt instalasi bawaan browser
+            deferredPrompt.prompt();
+            // Tunggu respons user
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') {
+              console.log('User accepted the install prompt');
+              setIsInstallable(false); // Sembunyikan tombol jika sudah diinstal
+            }
+            setDeferredPrompt(null);
+          };
+
           const handleLogin = (e) => {
             e.preventDefault();
             if (username === 'admin' && password === 'sebulu123') {
@@ -537,8 +575,14 @@
             return (
               <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
                 <div className="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden">
-                  <div className="bg-blue-600 p-8 text-center">
-                    <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner">
+                  <div className="bg-blue-600 p-8 text-center relative">
+                    {/* Tombol Install PWA di Halaman Login (Jika tersedia) */}
+                    {isInstallable && (
+                      <button onClick={handleInstallApp} className="absolute top-4 right-4 bg-white/20 hover:bg-white/30 text-white text-xs px-3 py-1.5 rounded-full font-semibold flex items-center gap-1 transition-colors">
+                        <Smartphone className="w-3.5 h-3.5"/> Install
+                      </button>
+                    )}
+                    <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner mt-4">
                       <Store className="w-10 h-10 text-blue-600" />
                     </div>
                     <h1 className="text-2xl font-bold text-white mb-1">UP SMKN 2 Sebulu</h1>
@@ -932,20 +976,30 @@
                       <p className="text-xs text-gray-500 hidden sm:block">Sistem Point of Sale</p>
                     </div>
                   </div>
-                  <div className="hidden lg:flex items-center gap-2 bg-gray-100 p-1.5 rounded-xl">
-                    {['dashboard', 'pos', 'history', 'inventory'].map(tab => (
-                      <button key={tab} onClick={() => setActiveTab(tab)} className={`px-5 py-2 rounded-lg text-sm font-semibold capitalize transition-all ${activeTab === tab ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-800'}`}>
-                        {tab === 'pos' ? 'Kasir' : tab === 'inventory' ? 'Data Barang' : tab === 'history' ? 'Riwayat' : tab}
+                  
+                  <div className="flex items-center gap-4">
+                    {/* Tombol Install PWA di Header (Muncul jika tersedia) */}
+                    {isInstallable && (
+                      <button onClick={handleInstallApp} className="bg-green-50 text-green-700 border border-green-200 hover:bg-green-600 hover:text-white px-3 py-1.5 rounded-lg text-sm font-bold flex items-center gap-2 transition-all">
+                        <Smartphone className="w-4 h-4"/> Install App
                       </button>
-                    ))}
+                    )}
+
+                    <div className="hidden lg:flex items-center gap-2 bg-gray-100 p-1.5 rounded-xl">
+                      {['dashboard', 'pos', 'history', 'inventory'].map(tab => (
+                        <button key={tab} onClick={() => setActiveTab(tab)} className={`px-5 py-2 rounded-lg text-sm font-semibold capitalize transition-all ${activeTab === tab ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-800'}`}>
+                          {tab === 'pos' ? 'Kasir' : tab === 'inventory' ? 'Data Barang' : tab === 'history' ? 'Riwayat' : tab}
+                        </button>
+                      ))}
+                    </div>
+                    <button onClick={handleLogout} className="text-red-500 flex items-center gap-2 hover:bg-red-50 p-2.5 rounded-xl transition" title="Keluar">
+                      <span className="text-sm font-semibold hidden md:block">Keluar</span>
+                      <LogOut className="w-5 h-5"/>
+                    </button>
                   </div>
-                  <button onClick={handleLogout} className="text-red-500 flex items-center gap-2 hover:bg-red-50 p-2.5 rounded-xl transition" title="Keluar">
-                    <span className="text-sm font-semibold hidden md:block">Keluar</span>
-                    <LogOut className="w-5 h-5"/>
-                  </button>
                 </header>
 
-                {/* DASHBOARD TAB (LENGKAP DENGAN PEMISAHAN LABA BARANG & JASA) */}
+                {/* DASHBOARD TAB */}
                 {activeTab === 'dashboard' && (
                   <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-50">
                     <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2"><LayoutDashboard className="text-blue-600" /> Dashboard & Analitik (Semua Waktu)</h2>
@@ -1011,7 +1065,7 @@
                   </div>
                 )}
 
-                {/* KASIR TAB (UKURAN KAD LEBIH KECIL & KEMAS) */}
+                {/* KASIR TAB */}
                 {activeTab === 'pos' && (
                   <div className="flex-1 flex flex-col overflow-hidden">
                     <div className="p-4 md:p-6 pb-2 shrink-0">
@@ -1069,7 +1123,7 @@
                   </div>
                 )}
 
-                {/* INVENTORY TAB (CRUD LENGKAP) */}
+                {/* INVENTORY TAB */}
                 {activeTab === 'inventory' && (
                   <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-50 flex flex-col lg:flex-row gap-6">
                     <div className="w-full lg:w-1/3 bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-gray-100 h-fit shrink-0">
@@ -1158,7 +1212,7 @@
                   </div>
                 )}
                 
-                {/* HISTORY TAB (DIPERBAIKI DENGAN FITUR HAPUS TRANSAKSI) */}
+                {/* HISTORY TAB */}
                 {activeTab === 'history' && (
                   <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-50">
                     <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-gray-800"><Receipt className="w-6 h-6 text-blue-600"/> Riwayat Transaksi</h2>
@@ -1266,6 +1320,17 @@
               )}
             </div>
           );
+        }
+
+        // --- REGISTRASI SERVICE WORKER PWA ---
+        if ('serviceWorker' in navigator) {
+          window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js').then((registration) => {
+              console.log('ServiceWorker PWA terdaftar sukses.');
+            }).catch((err) => {
+              console.log('Peringatan: ServiceWorker gagal terdaftar (Abaikan ini jika bukan di Vercel/Hosting).', err);
+            });
+          });
         }
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
